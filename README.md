@@ -2,13 +2,11 @@
 
 ## Asp Net Core Api Gateway package.
 
-[![Build Status](https://travis-ci.com/VeritasSoftware/AspNetCore.ApiGateway.svg?branch=master)](https://travis-ci.com/VeritasSoftware/AspNetCore.ApiGateway)
-
-|Packages|Version & Downloads|
-|---------------------------|:---:|
-|*AspNetCore.ApiGateway*|[![NuGet Version and Downloads count](https://buildstats.info/nuget/AspNetCore.ApiGateway)](https://www.nuget.org/packages/AspNetCore.ApiGateway)|
-|*AspNetCore.ApiGateway.Client*|[![NuGet Version and Downloads count](https://buildstats.info/nuget/AspNetCore.ApiGateway.Client)](https://www.nuget.org/packages/AspNetCore.ApiGateway.Client)|
-|*ts-aspnetcore-apigateway-client*|[![NPM Downloads count](https://img.shields.io/npm/dw/ts-aspnetcore-apigateway-client)](https://www.npmjs.com/package/ts-aspnetcore-apigateway-client)|
+|Packages|Version|Downloads|
+|---------------------------|:---:|:---:|
+|*AspNetCore.ApiGateway*|[![Nuget Version](https://img.shields.io/nuget/v/AspNetCore.ApiGateway)](https://www.nuget.org/packages/AspNetCore.ApiGateway)|[![Downloads count](https://img.shields.io/nuget/dt/AspNetCore.ApiGateway)](https://www.nuget.org/packages/AspNetCore.ApiGateway)|
+|*AspNetCore.ApiGateway.Client*|[![Nuget Version](https://img.shields.io/nuget/v/AspNetCore.ApiGateway.Client)](https://www.nuget.org/packages/AspNetCore.ApiGateway.Client)|[![Downloads count](https://img.shields.io/nuget/dt/AspNetCore.ApiGateway.Client)](https://www.nuget.org/packages/AspNetCore.ApiGateway.Client)|
+|*ts-aspnetcore-apigateway-client*|[![NPM Version](https://img.shields.io/npm/v/ts-aspnetcore-apigateway-client)](https://www.npmjs.com/package/ts-aspnetcore-apigateway-client)|[![Downloads count](https://img.shields.io/npm/dy/ts-aspnetcore-apigateway-client)](https://www.npmjs.com/package/ts-aspnetcore-apigateway-client)|
 
 ```diff
 + This project has been on-boarded by the .NET Foundation, in the Seed category.
@@ -16,6 +14,8 @@
 
 Read [more](https://github.com/dotnet-foundation/projects/issues/255).
 Social Media: LinkedIn [post](https://www.linkedin.com/feed/update/urn:li:activity:7168255226624372736/).
+
+[![LinkedIn post](/Docs/LinkedIn.png)](https://www.linkedin.com/feed/update/urn:li:activity:7168255226624372736/)
 
 |**More of my open-source projects**|||
 |---------------------------|:---:|:---:|
@@ -90,10 +90,6 @@ And, a Route with RouteKey called **forecast** for eg.
 So, the call to the Gateway would become:
 
 *	**HTTP GET - /weatherservice/forecast**
-
-Also, if you want, you can keep the ApiKey, RouteKey, backend API base url and Route path,
-in an appsettings, read it using a Config Service,
-and pass it to the Api Orchestrator in the below Create method.
 
 **Add a reference to the package and...**
 
@@ -209,19 +205,51 @@ you can enter the **Api key** and **Route key** into Swagger as below:
 
 This will hit the **weatherforecast/forecast** endpoint on the backend Weather API.
 
-You can check out how the Api Gateway supported Verbs are used below.
+### Using appsettings.json
 
-### [Verbs Usage](Docs/README_VERBS.md)
+If you want, you can keep the **ApiKey, RouteKey, backend API base urls and Route path**,
 
-You can check out how the Api Gateway's endpoint Authorization support below.
+in the **appsettings.json**, read it using a Config Service,
+
+and pass it to the Api Orchestrator in the Create method. 
+
+Read [**more**](/Docs/README_ConfigSettings.md).
+
+### Deployment to Prod
+
+As with any Web API, when there is any code change, the API Gateway too is published and deployed using **Blue/Green deployment**.
+
+This is available in **Azure** & **AWS**.
+
+In Azure App Service, you use **deployment slots** etc. 
+
+*   Read [more](https://learn.microsoft.com/en-us/azure/app-service/deploy-best-practices#use-deployment-slots).
+*   Read [more](https://learn.microsoft.com/en-us/azure/container-apps/blue-green-deployment?pivots=azure-cli).
+
+Azure Kubernetes Service (AKS) also supports Blue/Green deployment. Read [more](https://learn.microsoft.com/en-us/azure/architecture/guide/aks/blue-green-deployment-for-aks).
+
+In AWS, you use **Elastic Beanstalk**. Read [more](https://docs.aws.amazon.com/elasticbeanstalk/latest/dg/using-features.CNAMESwap.html).
+
+So, there is no down time.
+
+### Verbs usage & Routing
+
+You can check out how the Api Gateway supported Verbs are used & Routing below.
+
+### [Verbs Usage & Routing](Docs/README_VERBS.md)
+
+### Authorization
+
+Just like a Web API's Authorization Filter, the framework provides a **Gateway Authorization Filter**.
+
+Here you can perform any kind of Authorization you like. There is no prescribed Authorization.
 
 ### [Authorization](Docs/README_Authorization.md)
 
 ### Customizations
 
-*   Customize the default **HttpClient** used by all the routes, to hit the backend Api.
-*   Customize the default HttpClient which each route uses to hit the backend Api.
-*	Use your own **HttpClient** for each route.
+*   Create a new or customize the default **HttpClient** used by all the routes, to hit the backend Api.
+*   Create a new or customize the default **HttpClient** which each route uses to hit the backend Api.
 *	Use your own custom implementation to hit the backend Api.
 
 For **Request aggregation**, see this section.

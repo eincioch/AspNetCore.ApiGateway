@@ -1,20 +1,20 @@
 ﻿using AspNetCore.ApiGateway.Application;
 using AspNetCore.ApiGateway.Application.ActionFilters;
 using AspNetCore.ApiGateway.Application.ExceptionFilters;
-using AspNetCore.ApiGateway.Middleware;
+using AspNetCore.ApiGateway.Application.HubFilters;
 using AspNetCore.ApiGateway.Application.ResultFilters;
 using AspNetCore.ApiGateway.Authorization;
+using AspNetCore.ApiGateway.Middleware;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Linq;
 using System.Net.Http.Headers;
-using AspNetCore.ApiGateway.Application.HubFilters;
-using Microsoft.AspNetCore.SignalR;
 using System.Text.Json;
 
 namespace AspNetCore.ApiGateway
@@ -28,10 +28,15 @@ namespace AspNetCore.ApiGateway
             Options = new ApiGatewayOptions();
 
             options?.Invoke(Options);
-
-            var apis = new ApiOrchestrator();
             
-            services.AddTransient<IApiOrchestrator>(x => apis);
+            services.AddSingleton<IMediator, Mediator>();
+            services.AddSingleton<IHubMediator, HubMediator>();
+            services.AddSingleton<IEventSourceMediator, EventSourceMediator>();
+
+            services.AddSingleton<IApiOrchestrator>(sp => new ApiOrchestrator(
+                sp.GetRequiredService<IMediator>(),
+                sp.GetRequiredService<IHubMediator>(),
+                sp.GetRequiredService<IEventSourceMediator>()));
 
             services.AddAuthorizationFilters()
                     .AddActionFilters()
@@ -39,7 +44,15 @@ namespace AspNetCore.ApiGateway
                     .AddResultFilters()
                     .AddHubFilters();
 
-            if (Options.DefaultHttpClientConfigure != null)
+            services.AddHttpContextAccessor();
+
+            if (Options.DefaultMyHttpClientHandler != null)
+            {
+                services
+                    .AddHttpClient<IHttpService, HttpService>()
+                    .ConfigurePrimaryHttpMessageHandler(Options.DefaultMyHttpClientHandler);
+            }
+            else if (Options.DefaultHttpClientConfigure != null)
             {
                 services.AddHttpClient<IHttpService, HttpService>(Options.DefaultHttpClientConfigure);
             }
@@ -166,15 +179,25 @@ namespace AspNetCore.ApiGateway
                 {
                     services.AddResponseCaching();
 
-                    services.AddMvc(o => o.Filters.Add(new ResponseCacheAttribute
+                    services.AddScoped(sp => new ResponseCacheTillAttribute(sp.GetRequiredService<IHttpContextAccessor>(),
+                                                                            sp.GetRequiredService<IApiOrchestrator>(),
+                                                                            Options)
                     {
                         NoStore = Options.ResponseCacheSettings.NoStore,
                         Location = Options.ResponseCacheSettings.Location,
-                        Duration = Options.ResponseCacheSettings.Duration,
                         VaryByHeader = Options.ResponseCacheSettings.VaryByHeader,
                         VaryByQueryKeys = Options.ResponseCacheSettings.VaryByQueryKeys,
                         CacheProfileName = Options.ResponseCacheSettings.CacheProfileName
-                    }));
+                    });
+                }
+                else
+                {
+                    services.AddScoped(sp => new ResponseCacheTillAttribute(sp.GetRequiredService<IHttpContextAccessor>(),
+                                                                            sp.GetRequiredService<IApiOrchestrator>(),
+                                                                            Options)
+                    {
+                        NoStore = true
+                    });
                 }
             }
         }

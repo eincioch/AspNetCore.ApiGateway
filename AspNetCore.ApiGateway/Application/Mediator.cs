@@ -75,6 +75,7 @@ namespace AspNetCore.ApiGateway
         public Type RequestType { get; set; }
         public Func<ApiInfo, HttpRequest, Task<object>> Exec { get; set; }
         public HttpClientConfig HttpClientConfig { get; set; }
+        public int ResponseCachingDurationInSeconds { get; set; } = -1;
         private IEnumerable<string> Params
         {
             get
@@ -155,16 +156,17 @@ namespace AspNetCore.ApiGateway
 
     public class EventSourceMediator : IEventSourceMediator
     {
-        private readonly IApiOrchestrator _apiOrchestrator;
+        public IApiOrchestrator ApiOrchestrator
+        {
+            get => _apiOrchestrator;
+            set => _apiOrchestrator = value;
+        }
+
+        private IApiOrchestrator _apiOrchestrator;
         Dictionary<string, GatewayEventSourceRouteInfo> paths = new Dictionary<string, GatewayEventSourceRouteInfo>();
 
         public Dictionary<string, GatewayEventSourceRouteInfo> Paths => paths;
-
-        public EventSourceMediator(IApiOrchestrator apiOrchestrator)
-        {
-            _apiOrchestrator = apiOrchestrator;
-        }
-
+        
         public IHubMediator AddHub(string apiKey, Func<HubConnectionBuilder, HubConnection> connectionBuilder, string receiveKey = null)
         {
             return _apiOrchestrator.AddHub(apiKey, connectionBuilder, receiveKey);
@@ -212,14 +214,15 @@ namespace AspNetCore.ApiGateway
 
     public class HubMediator : IHubMediator
     {
-        private readonly IApiOrchestrator _apiOrchestrator;
+        private IApiOrchestrator _apiOrchestrator;
         Dictionary<string, GatewayHubRouteInfo> paths = new Dictionary<string, GatewayHubRouteInfo>();
 
         public Dictionary<string, GatewayHubRouteInfo> Paths => paths;
 
-        public HubMediator(IApiOrchestrator apiOrchestrator)
+        public IApiOrchestrator ApiOrchestrator
         {
-            _apiOrchestrator = apiOrchestrator;
+            get => _apiOrchestrator;
+            set => _apiOrchestrator = value;
         }
 
         public IHubMediator AddHub(string apiKey, Func<HubConnectionBuilder, HubConnection> connectionBuilder, string receiveKey = null)
@@ -271,11 +274,13 @@ namespace AspNetCore.ApiGateway
 
     public class Mediator : IMediator
     {
-        readonly IApiOrchestrator _apiOrchestrator;
+        IApiOrchestrator _apiOrchestrator;
         Dictionary<string, GatewayRouteInfo> paths = new Dictionary<string, GatewayRouteInfo>();
-        public Mediator(IApiOrchestrator apiOrchestrator)
+
+        public IApiOrchestrator ApiOrchestrator
         {
-            _apiOrchestrator = apiOrchestrator;
+            get => _apiOrchestrator;
+            set => _apiOrchestrator = value;
         }
 
         public IMediator AddRoute(string routeKey, GatewayVerb verb, RouteInfo routeInfo)
